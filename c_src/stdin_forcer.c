@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
     /*fprintf(stderr, "run %s\n", cmd);*/
 
     /* At this point, the execv'd program's STDIN and STDOUT are the pipe */
-    if (execv(cmd, exec_args) == -1) {
-      perror("execve");
+    if (execvp(cmd, exec_args) == -1) {
+      perror("execvp");
     }
     _exit(EXIT_FAILURE);  /* Silence a warning */
   }
