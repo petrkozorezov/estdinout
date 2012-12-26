@@ -24,6 +24,9 @@ union packet_size_buf {
   uint32_t int_b;
 };
 
+void  read_all(int fd, char * buf, size_t len);
+void write_all(int fd, char * buf, size_t len);
+
 int main(int argc, char *argv[]) {
   int readpipe[2], writepipe[2];
   pid_t cpid;
@@ -74,10 +77,10 @@ int main(int argc, char *argv[]) {
   }
   else {
     /* Original Parent Process */
-    char small_buf;
     char * buf;
     union packet_size_buf size_buf;
     uint32_t packet_len;
+    int status;
 
     /*fprintf(stderr, "hello\n");*/
 
@@ -88,52 +91,82 @@ int main(int argc, char *argv[]) {
       perror("read input data size");
       _exit(EXIT_FAILURE);
     }
-    
+
     packet_len = ntohl((uint32_t)size_buf.int_b);
     buf = malloc(packet_len);
 
-    /*fprintf(stderr, "read packet_len %i\n", packet_len);*/
+    /* fprintf(stderr, "read packet_len %i\n", packet_len); */
 
-    if(read(STDIN_FILENO, buf, packet_len) < packet_len) {
-      perror("read input data");
-      _exit(EXIT_FAILURE);
-    }
-    if(write(PARENT_WRITE, buf, packet_len) < packet_len) {
-      perror("write input data");
-      _exit(EXIT_FAILURE);
-    }
-    /*fprintf(stderr, "input data %s\n", buf);*/
+    read_all(STDIN_FILENO, buf, packet_len);
+    write_all(PARENT_WRITE, buf, packet_len);
+
     free(buf);
 
     close(PARENT_WRITE); /* closing PARENT_WRITE sends EOF to CHILD_READ */
-    wait(NULL);          /* Wait for child to exit */
 
     packet_len = 0;
-    buf = malloc(BUFF_SIZE);
+    buf = malloc(0);
 
-    while (read(PARENT_READ, &small_buf, 1) == 1) {
-      /*fprintf(stderr, "output data %c\n", small_buf);*/
-      ++packet_len;
-      if(packet_len % BUFF_SIZE == 0) {
+    {
+      size_t t = 0;
+      do{
         buf = realloc(buf, (packet_len / BUFF_SIZE + 1) * BUFF_SIZE);
-      }
-      buf[packet_len - 1] = small_buf;
-    }
-    /*fprintf(stderr, "read packet_len %i\n", packet_len);*/
+        t = read(PARENT_READ, buf + packet_len, BUFF_SIZE);
+        packet_len += t;
+      } while(t == BUFF_SIZE);
 
+      /*fprintf(stderr, "read packet_len %i\n", packet_len);*/
+    }
     size_buf.int_b = htonl(packet_len);
     if(write(STDOUT_FILENO, size_buf.char_b, PACKET_N) < PACKET_N) {
       perror("write output data size");
       _exit(EXIT_FAILURE);
     }
 
-    if(write(STDOUT_FILENO, buf, packet_len) < packet_len) {
-      perror("write output data");
+    write_all(STDOUT_FILENO, buf, packet_len);
+    free(buf);
+
+    wait(&status);          /* Wait for child to exit */
+    if(status) {
+      fprintf(stderr, "child error status %i\n", status);
       _exit(EXIT_FAILURE);
     }
-    free(buf);
 
     close(PARENT_READ);      /* done reading from writepipe */
     exit(EXIT_SUCCESS);      /* This was a triumph */
   }
+}
+
+void read_all(int fd, char * buf, size_t len) {
+  size_t t;
+  if(len == 0) {
+    return;
+  }
+  do {
+    t = read(fd, buf, len);
+    /*fprintf(stderr, "read %i byted\n", (int)t);*/
+    if(t < 1) {
+      perror("read input data");
+      _exit(EXIT_FAILURE);
+    } 
+    len -= t;
+    buf += t;
+  } while(len);
+}
+
+void write_all(int fd, char * buf, size_t len) {
+  size_t t;
+  if(len == 0) {
+    return;
+  }
+  do {
+    t = write(fd, buf, len);
+    /*fprintf(stderr, "write %i byted\n", (int)t);*/
+    if(t < 1) {
+      perror("write input data");
+      _exit(EXIT_FAILURE);
+    } 
+    len -= t;
+    buf += t;
+  } while(len);
 }
