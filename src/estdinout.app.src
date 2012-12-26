@@ -1,0 +1,12 @@
+{application, estdinout, [
+    {description, "simple middleware for resolving erlang eof port problem"},
+    {vsn, "0.1"},
+    {registered, []},
+    {env, []},
+
+    {applications, [
+        kernel,
+        stdlib
+    ]}
+
+]}.
