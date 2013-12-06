@@ -8,3 +8,6 @@ Example:
         {ok, <<"hello">>} = estdinout:run("/bin/cat", <<"hello">>).
         {ok, <<"hello">>} = estdinout:run("/bin/echo -n hello", <<>>).
         {ok, SmallJpeg}   = estdinout:run("convert -resize 1024x1024 - jpg:-", BigJpeg).
+
+
+:herb::pig2::dash::boom:
