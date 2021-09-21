@@ -6,9 +6,8 @@ run_test() ->
     {ok, <<"hello">>} = estdinout:run("echo -n hello", <<>>),
 
     BigDataMbLength = 500,
-    BigDataKb = [random:uniform(255) || _ <- lists:seq(1, 1024)],
+    BigDataKb = [rand:uniform(255) || _ <- lists:seq(1, 1024)],
     BigDataMb = [BigDataKb || _ <- lists:seq(1, 1024)],
-    random:seed(erlang:now()),
     BigData = list_to_binary([BigDataMb || _ <- lists:seq(1, BigDataMbLength)]),
     {ok, BigData} = estdinout:run("cat", BigData).
 
