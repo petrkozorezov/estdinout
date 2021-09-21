@@ -1,12 +1,12 @@
 {application, estdinout, [
     {description, "simple middleware for resolving erlang eof port problem"},
-    {vsn, "0.1"},
+    {vsn, "1.0.0"},
     {registered, []},
     {env, []},
-
     {applications, [
         kernel,
         stdlib
-    ]}
-    {licenses, ["Apache-2.0"]}
+    ]},
+    {licenses, ["Apache-2.0"]},
+    {links, [{"GitHub", "https://github.com/petrkozorezov/estdinout"}]}
 ]}.
