@@ -33,7 +33,7 @@ struct packet_t {
 };
 
 
-void wait_child();
+void wait_child(void);
 struct packet_t * transfer_data(int read_fd, int write_fd, struct packet_t * input_packet);
 void read_all_to_packet(int fd, struct packet_t * output_packet);
 int read_buff_to_packet(int fd, struct packet_t * packet);
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
 }
 
 
-void wait_child() {
+void wait_child(void) {
   int status;
   wait(&status);
   if(status) {
